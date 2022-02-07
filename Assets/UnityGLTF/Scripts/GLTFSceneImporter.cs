@@ -161,6 +161,7 @@ namespace UnityGLTF
         /// <param name="onLoadComplete">Callback function for when load is completed</param>
         /// <returns></returns>
         public IEnumerator LoadScene(int sceneIndex = -1, bool isMultithreaded = false, Action<GameObject> onLoadComplete = null)
+        
         {
             try
             {
@@ -1198,50 +1199,63 @@ namespace UnityGLTF
             var vertexCount = primitive.Attributes[SemanticProperties.POSITION].Value.Count;
 
 			// todo optimize: There are multiple copies being performed to turn the buffer data into mesh data. Look into reducing them
-			UnityEngine.Mesh mesh = new UnityEngine.Mesh
+            UnityEngine.Mesh mesh = new UnityEngine.Mesh();
+            
+            
 			{
 #if UNITY_2017_3_OR_NEWER
-				indexFormat = vertexCount > 65535 ? IndexFormat.UInt32 : IndexFormat.UInt16,
+                mesh.indexFormat = vertexCount > 65535 ? IndexFormat.UInt32 : IndexFormat.UInt16;
 #endif
-				vertices = primitive.Attributes.ContainsKey(SemanticProperties.POSITION)
-					? meshAttributes[SemanticProperties.POSITION].AccessorContent.AsVertices.ToUnityVector3Raw()
-					: null,
-				normals = primitive.Attributes.ContainsKey(SemanticProperties.NORMAL)
+                mesh.vertices = primitive.Attributes.ContainsKey(SemanticProperties.POSITION)
+                    ? meshAttributes[SemanticProperties.POSITION].AccessorContent.AsVertices.ToUnityVector3Raw()
+                    : null;
+                mesh.normals = primitive.Attributes.ContainsKey(SemanticProperties.NORMAL)
 					? meshAttributes[SemanticProperties.NORMAL].AccessorContent.AsNormals.ToUnityVector3Raw()
-					: null,
+					: null;
 
-                uv = primitive.Attributes.ContainsKey(SemanticProperties.TexCoord(0))
+                mesh.uv = primitive.Attributes.ContainsKey(SemanticProperties.TexCoord(0))
                     ? meshAttributes[SemanticProperties.TexCoord(0)].AccessorContent.AsTexcoords.ToUnityVector2Raw()
-                    : null,
+                    : null;
 
-                uv2 = primitive.Attributes.ContainsKey(SemanticProperties.TexCoord(1))
+                mesh.uv2 = primitive.Attributes.ContainsKey(SemanticProperties.TexCoord(1))
                     ? meshAttributes[SemanticProperties.TexCoord(1)].AccessorContent.AsTexcoords.ToUnityVector2Raw()
-                    : null,
+                    : null;
 
-                uv3 = primitive.Attributes.ContainsKey(SemanticProperties.TexCoord(2))
+                mesh.uv3 = primitive.Attributes.ContainsKey(SemanticProperties.TexCoord(2))
                     ? meshAttributes[SemanticProperties.TexCoord(2)].AccessorContent.AsTexcoords.ToUnityVector2Raw()
-                    : null,
+                    : null;
 
-                uv4 = primitive.Attributes.ContainsKey(SemanticProperties.TexCoord(3))
+                mesh.uv4 = primitive.Attributes.ContainsKey(SemanticProperties.TexCoord(3))
                     ? meshAttributes[SemanticProperties.TexCoord(3)].AccessorContent.AsTexcoords.ToUnityVector2Raw()
-                    : null,
+                    : null;
 
-                colors = primitive.Attributes.ContainsKey(SemanticProperties.Color(0))
+                mesh.colors = primitive.Attributes.ContainsKey(SemanticProperties.Color(0))
                     ? meshAttributes[SemanticProperties.Color(0)].AccessorContent.AsColors.ToUnityColorRaw()
-                    : null,
+                    : null;
 
-                triangles = primitive.Indices != null
+                if (primitive.Mode == DrawMode.Lines)
+                {
+                    mesh.triangles = primitive.Indices != null
+                        ? meshAttributes[SemanticProperties.INDICES].AccessorContent.AsUInts.ToIntArrayRaw()
+                        : MeshPrimitive.GenerateLines(vertexCount);
+                }else
+                {
+                    mesh.triangles = primitive.Indices != null
                     ? meshAttributes[SemanticProperties.INDICES].AccessorContent.AsUInts.ToIntArrayRaw()
-                    : MeshPrimitive.GenerateTriangles(vertexCount),
-
-                tangents = primitive.Attributes.ContainsKey(SemanticProperties.TANGENT)
+                    : MeshPrimitive.GenerateTriangles(vertexCount);
+                }
+                
+                mesh.tangents = primitive.Attributes.ContainsKey(SemanticProperties.TANGENT)
                     ? meshAttributes[SemanticProperties.TANGENT].AccessorContent.AsTangents.ToUnityVector4Raw()
-                    : null,
+                    : null;
 
-                boneWeights = meshAttributes.ContainsKey(SemanticProperties.Weight(0)) && meshAttributes.ContainsKey(SemanticProperties.Joint(0))
-                    ? CreateBoneWeightArray(meshAttributes[SemanticProperties.Joint(0)].AccessorContent.AsVec4s.ToUnityVector4Raw(),
-                        meshAttributes[SemanticProperties.Weight(0)].AccessorContent.AsVec4s.ToUnityVector4Raw(), vertexCount)
-                    : null
+                mesh.boneWeights = meshAttributes.ContainsKey(SemanticProperties.Weight(0)) &&
+                                   meshAttributes.ContainsKey(SemanticProperties.Joint(0))
+                    ? CreateBoneWeightArray(
+                        meshAttributes[SemanticProperties.Joint(0)].AccessorContent.AsVec4s.ToUnityVector4Raw(),
+                        meshAttributes[SemanticProperties.Weight(0)].AccessorContent.AsVec4s.ToUnityVector4Raw(),
+                        vertexCount)
+                    : null;
             };
 
             _assetCache.MeshCache[meshId][primitiveIndex].LoadedMesh = mesh;

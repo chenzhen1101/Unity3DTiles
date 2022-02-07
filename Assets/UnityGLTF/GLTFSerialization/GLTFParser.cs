@@ -40,20 +40,18 @@ namespace GLTF
 		{
 			stream.Position = startPosition + 4;	 // start after magic number chunk
 			GLBHeader header = ParseGLBHeader(stream);
-			uint chunkOffset = 12;   // sizeof(GLBHeader) + magic number
+			uint chunkOffset = (uint)startPosition + 12;   // sizeof(GLBHeader) + magic number
 			uint chunkLength = 0;
 			for (int i = 0; i < binaryChunkIndex + 2; ++i)
 			{
 				chunkOffset += chunkLength;
-                //vona 5/25/21
-				//stream.Position = chunkOffset;
-				stream.Position = startPosition + chunkOffset;
+				stream.Position = chunkOffset;
 				chunkLength = GetUInt32(stream);
 				chunkOffset += 8;   // to account for chunk length (4 bytes) and type (4 bytes)
 			}
 
 			// Load Binary Chunk
-			if (chunkOffset + chunkLength <= header.FileLength)
+			if (chunkOffset + chunkLength - (uint)startPosition<= header.FileLength)
 			{
 				uint chunkType = GetUInt32(stream);
 				if (chunkType != (uint)ChunkFormat.BIN)

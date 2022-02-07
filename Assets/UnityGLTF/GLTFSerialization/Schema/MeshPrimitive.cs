@@ -94,15 +94,29 @@ namespace GLTF.Schema
 		public static int[] GenerateTriangles(int vertCount)
 		{
 			var arr = new int[vertCount];
-			for (var i = 0; i < vertCount; i+=3)
+			// avoid out of bound
+			for (var i = 0; i < vertCount - 3; i+=3)
 			{
-				arr[i] = i + 2;
-				arr[i + 1] = i + 1;
+				arr[i] = i + 1;
+				arr[i + 1] = i + 2;
 				arr[i + 2] = i;
 			}
 
 			return arr;
 		}
+		
+		public static int[] GenerateLines(int vertCount)
+		{
+			var arr = new int[vertCount];
+			for (var i = 0; i < vertCount - 3; i+=3)
+			{
+				arr[i] = i;
+				arr[i+1] = i + 1;
+				arr[i+2] = i + 1;
+			}
+			return arr;
+		}
+		
 
 		// Taken from: http://answers.unity3d.com/comments/190515/view.html
 		// Official support for Mesh.RecalculateTangents should be coming in 5.6

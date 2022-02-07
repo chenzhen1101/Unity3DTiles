@@ -101,7 +101,7 @@ namespace Unity3DTiles
                 Root = LoadTileset(tilesetUrl, schemaTileset, null);
             }).Catch(error =>
             {
-                Debug.LogError(error.Message + "\n" + error.StackTrace);
+                Debug.LogError(error.Message + "\n" + error.StackTrace + "\n" + tilesetUrl);
             });
         }
 
